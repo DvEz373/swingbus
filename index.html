@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Swingbus · Plotting and grid calculations for power-system engineers</title>
+<meta name="description" content="An offline toolkit for grid-connection studies: PSCAD results next to field data, and the grid behind every test. A personal project.">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Swingbus">
+<meta property="og:description" content="Benchmark the simulation. Size the grid. An offline toolkit for power-system engineers, built as a personal project.">
+<meta property="og:image" content="https://swingbus-present.vercel.app/video/swingbus-demo-poster.jpg">
+<meta property="og:url" content="https://swingbus-present.vercel.app/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Crect width='20' height='20' rx='5' fill='%232563eb'/%3E%3Cpath d='M3 14 L7.5 9 L11 12 L17 5' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+  /* Swingbus showcase. One page, light and dark from the system setting, the app's blue as its one accent.
+     Shapes: media and panels 14 px, buttons 10 px, chips full pill. */
+  :root {
+    --page: #f6f7f9;
+    --surface: #ffffff;
+    --surface-2: #eef1f5;
+    --text: #111827;
+    --text-2: #4b5563;
+    --border: #dfe3ea;
+    --accent: #2563eb;
+    --accent-text: #ffffff;
+    --accent-soft: #e8efff;
+    --shadow: 0 18px 50px rgba(30, 41, 70, 0.12);
+    --radius: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page: #0e1117;
+      --surface: #161b24;
+      --surface-2: #1d2330;
+      --text: #eef1f6;
+      --text-2: #a7b0c0;
+      --border: #2a3242;
+      --accent: #4f8cf7;
+      --accent-text: #0b1220;
+      --accent-soft: #17233b;
+      --shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--text);
+    font: 16px/1.6 "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  img, video { display: block; max-width: 100%; height: auto; }
+  a { color: inherit; }
+  .wrap { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+  h1, h2, h3 { font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, sans-serif; letter-spacing: -0.02em; margin: 0; }
+  h2 { font-size: clamp(28px, 3.4vw, 40px); line-height: 1.15; }
+  h3 { font-size: 20px; line-height: 1.3; }
+  p { margin: 0; color: var(--text-2); max-width: 62ch; }
+
+  /* Buttons */
+  .button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 46px; padding: 0 22px; border-radius: 10px; border: 1px solid transparent;
+    font-weight: 600; font-size: 15px; text-decoration: none; white-space: nowrap;
+    transition: transform .15s ease, background-color .15s ease, border-color .15s ease;
+  }
+  .button:active { transform: translateY(1px) scale(.99); }
+  .button.primary { background: var(--accent); color: var(--accent-text); }
+  .button.primary:hover { filter: brightness(1.08); }
+  .button.secondary { border-color: var(--border); color: var(--text); background: var(--surface); }
+  .button.secondary:hover { border-color: var(--accent); }
+  .button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+  /* Top bar */
+  header.top { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--page) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+  header.top .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; text-decoration: none; }
+  .mark { width: 28px; height: 28px; border-radius: 7px; background: var(--accent); display: grid; place-items: center; }
+  .mark path { stroke: #fff; }
+  header.top .button { height: 38px; padding: 0 16px; font-size: 14px; }
+
+  /* Hero: words on the left, the 30 s cut playing on the right */
+  .hero { padding: 72px 0 88px; }
+  .hero .wrap { display: grid; grid-template-columns: 7fr 6fr; gap: 48px; align-items: center; }
+  .hero h1 { font-size: clamp(34px, 3.1vw, 46px); line-height: 1.1; }
+  .hero p { margin-top: 20px; font-size: 19px; }
+  .hero .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+  .media { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow); background: var(--surface); }
+
+  section { padding: 88px 0; }
+  .section-head { display: grid; gap: 14px; margin-bottom: 40px; }
+
+  /* Grid Plotter: a wide picture, then two pictures side by side with a line each */
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 28px; }
+  figure { margin: 0; }
+  figcaption { margin-top: 12px; font-size: 15px; color: var(--text-2); }
+
+  /* Grid Calculator: words and a picture, the picture larger */
+  .calc { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .calc .wrap { display: grid; grid-template-columns: 4fr 7fr; gap: 56px; align-items: center; }
+  .calc ul { margin: 24px 0 0; padding: 0; list-style: none; display: grid; gap: 14px; }
+  .calc li { padding-left: 18px; position: relative; color: var(--text-2); }
+  .calc li::before { content: ""; position: absolute; left: 0; top: 0.72em; width: 8px; height: 2px; background: var(--accent); }
+  .calc li strong { color: var(--text); font-weight: 600; }
+
+  /* Bento: four cells, the picture spanning two rows */
+  .bento { display: grid; grid-template-columns: 7fr 5fr; grid-template-rows: auto auto; gap: 20px; }
+  .cell { border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); padding: 28px; display: grid; gap: 12px; align-content: start; }
+  .cell.picture { grid-row: span 2; padding: 0; overflow: hidden; align-content: stretch; }
+  .cell.picture img { width: 100%; height: 100%; object-fit: cover; object-position: left top; }
+  .cell.tint { background: var(--accent-soft); border-color: transparent; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .chip { padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); font-size: 14px; color: var(--text); }
+
+  /* The tour */
+  .tour .media { margin-top: 8px; }
+
+  /* Closing */
+  .closing { padding-bottom: 104px; }
+  .closing .panel { border-radius: var(--radius); background: var(--surface); border: 1px solid var(--border); padding: 48px; display: grid; grid-template-columns: 3fr 2fr; gap: 32px; align-items: center; }
+  .closing .panel.about { grid-template-columns: 1fr; gap: 36px; }
+  .people-label { font-size: 14px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--text-2); margin-bottom: 14px; }
+  .people { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .person { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: start; padding: 24px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface-2); }
+  .avatar { width: 52px; height: 52px; border-radius: 999px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 18px; }
+  .person h3 { font-size: 19px; }
+  .person p { margin-top: 4px; font-size: 15px; }
+  .person a { display: inline-block; margin-top: 10px; color: var(--accent); font-weight: 600; font-size: 15px; text-decoration: none; }
+  .person a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  footer { border-top: 1px solid var(--border); padding: 28px 0; font-size: 14px; color: var(--text-2); }
+  footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+  /* Sections rise in as they come into view (browsers with scroll-driven animations; never with reduced motion) */
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      .reveal { animation: rise linear both; animation-timeline: view(); animation-range: entry 0% entry 35%; }
+      @keyframes rise { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+    }
+    .hero .wrap > * { animation: enter .7s cubic-bezier(.16, 1, .3, 1) both; }
+    .hero .wrap > :nth-child(2) { animation-delay: .12s; }
+    @keyframes enter { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  }
+
+  /* Phones and narrow windows: one column */
+  @media (max-width: 860px) {
+    .hero { padding: 40px 0 56px; }
+    .hero .wrap, .calc .wrap, .pair, .bento, .closing .panel { grid-template-columns: 1fr; }
+    .cell.picture { grid-row: auto; }
+    section { padding: 56px 0; }
+    .closing .panel { padding: 28px; }
+    .people { grid-template-columns: 1fr; }
+    .person { padding: 20px; }
+    .wrap { padding: 0 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Swingbus, back to the top">
+      <span class="mark" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 20 20"><path d="M3 14 L7.5 9 L11 12 L17 5" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      Swingbus
+    </a>
+    <a class="button secondary" href="#tour">Watch the tour</a>
+  </div>
+</header>
+
+<main id="top">
+  <div class="hero">
+    <div class="wrap">
+      <div>
+        <h1>Benchmark the simulation.<br>Size the grid.</h1>
+        <p>An offline toolkit for grid-connection studies: PSCAD results next to field data, and the grid behind every test.</p>
+        <div class="actions">
+          <a class="button primary" href="#tour">Watch the tour</a>
+        </div>
+      </div>
+      <div class="media">
+        <video src="video/swingbus-demo-30s.mp4" poster="video/swingbus-demo-30s-poster.jpg" autoplay muted loop playsinline preload="metadata" width="1920" height="1080" aria-label="Swingbus in 30 seconds: a simulation and a measurement overlaid, the error between them, then the Grid Calculator and its voltage plots"></video>
+      </div>
+    </div>
+  </div>
+
+  <section aria-labelledby="plotter">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <h2 id="plotter">Simulation and measurement on one screen</h2>
+        <p>Open PSCAD, PSS®E, COMTRADE, MATLAB or CSV files. Overlay them, zoom to the fault, read two cursors, and keep one tab per test case.</p>
+      </div>
+      <figure class="media reveal">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="img/dark/app-layout.webp">
+          <img src="img/light/app-layout.webp" width="1400" height="860" loading="lazy" alt="The Grid Plotter with three LVRT test cases in tabs: voltage, active and reactive power of a simulation overlaid on a measurement, with cursors A and B and their statistics">
+        </picture>
+      </figure>
+      <div class="pair">
+        <figure class="reveal">
+          <div class="media">
+            <picture>
+              <source media="(prefers-color-scheme: dark)" srcset="img/dark/app-computed.webp">
+              <img src="img/light/app-computed.webp" width="1400" height="860" loading="lazy" alt="A computed signal, the active power error between simulation and measurement, drawn in green under the two traces">
+            </picture>
+          </div>
+          <figcaption>The error between two signals becomes a signal of its own, plotted and measured like the rest.</figcaption>
+        </figure>
+        <figure class="reveal">
+          <div class="media">
+            <picture>
+              <source media="(prefers-color-scheme: dark)" srcset="img/dark/app-plots-cursors.webp">
+              <img src="img/light/app-plots-cursors.webp" width="1400" height="860" loading="lazy" alt="Two plots with cursors A and B and the Inspector listing the value of each signal at both cursors and their difference">
+            </picture>
+          </div>
+          <figcaption>Cursors A and B give the value of every signal at both points, and the difference.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="calc" aria-labelledby="calculator">
+    <div class="wrap">
+      <div class="reveal">
+        <h2 id="calculator">The grid behind your test, worked out</h2>
+        <ul>
+          <li><strong>Grid impedance:</strong> SCR and X/R to Zs in ohms and per unit, on four bases.</li>
+          <li><strong>Fault impedance:</strong> the Zf for a voltage dip or swell, with AEMO DMAT values, and the voltage plotted along the circuit, against Zf and over time.</li>
+          <li><strong>Unbalanced faults:</strong> 1PG, 2PG and LL by symmetrical components.</li>
+          <li><strong>Bases and the transformer:</strong> the SCR the machine sees at its terminal.</li>
+        </ul>
+      </div>
+      <figure class="media reveal">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="img/dark/app-calc-fault.webp">
+          <img src="img/light/app-calc-fault.webp" width="1400" height="1100" loading="lazy" alt="The Fault impedance page of the Grid Calculator: inputs on the left, the circuit with the fault branch hanging from the fault point F, the voltage along the circuit under it, and Zf in ohms and per unit">
+        </picture>
+      </figure>
+    </div>
+  </section>
+
+  <section aria-labelledby="practice">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <h2 id="practice">Built for the files you already have</h2>
+      </div>
+      <div class="bento">
+        <div class="cell picture reveal">
+          <picture>
+            <source media="(prefers-color-scheme: dark)" srcset="img/dark/app-pscad.webp">
+            <img src="img/light/app-pscad.webp" width="1400" height="860" loading="lazy" alt="A PSCAD HVDC case opened from its output files: AC voltages, DC volts and DC currents of the rectifier and the inverter">
+          </picture>
+        </div>
+        <div class="cell reveal">
+          <h3>Reads your simulators and recorders</h3>
+          <div class="chips" aria-label="File types">
+            <span class="chip">PSCAD .psout</span><span class="chip">PSCAD .inf + .out</span><span class="chip">PSS®E .out / .outx</span>
+            <span class="chip">COMTRADE</span><span class="chip">MATLAB .mat</span><span class="chip">CSV and TSV</span><span class="chip">NumPy</span>
+          </div>
+        </div>
+        <div class="cell tint reveal">
+          <h3>Offline, on your PC</h3>
+          <p>A Windows app, or one HTML file in a browser. No account, no server, and your data stays with you.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tour" id="tour" aria-labelledby="tour-title">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <h2 id="tour-title">See it in a minute</h2>
+        <p>An LVRT benchmark from the first file to the fault impedance.</p>
+      </div>
+      <div class="media reveal">
+        <video src="video/swingbus-demo.mp4" poster="video/swingbus-demo-poster.jpg" controls preload="none" playsinline width="1920" height="1080" aria-label="The Swingbus tour, about one minute"></video>
+      </div>
+    </div>
+  </section>
+
+  <section class="closing" aria-labelledby="about">
+    <div class="wrap">
+      <div class="panel about reveal">
+        <div>
+          <h2 id="about">A personal project</h2>
+          <p style="margin-top:14px">Built by two fresh electrical engineering graduates from Universitas Indonesia, in our own time. We add a tool when grid-connection work calls for one.</p>
+        </div>
+        <div>
+          <h3 class="people-label" id="developers">The developers</h3>
+          <ul class="people" aria-labelledby="developers">
+            <li class="person">
+              <span class="avatar" aria-hidden="true">SH</span>
+              <div>
+                <h3>Satria Wibawa Hadiwijaya</h3>
+                <p>Fresh graduate in electrical engineering</p>
+                <a href="https://taio11k.github.io/" target="_blank" rel="noopener">taio11k.github.io ↗</a>
+              </div>
+            </li>
+            <li class="person">
+              <span class="avatar" aria-hidden="true">DP</span>
+              <div>
+                <h3>Devin Ezekiel Purba</h3>
+                <p>Fresh graduate in electrical engineering, power-system engineer</p>
+                <a href="https://dvez373.github.io/" target="_blank" rel="noopener">dvez373.github.io ↗</a>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Swingbus</span>
+    <span>PSCAD, PSS®E and MATLAB are trademarks of their owners.</span>
+  </div>
+</footer>
+
+<script>
+  // People who ask for less motion get the poster and a play button instead of an autoplaying loop
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const hero = document.querySelector(".hero video");
+    hero.removeAttribute("autoplay");
+    hero.pause();
+    hero.controls = true;
+  }
+</script>
+
+</body>
+</html>
