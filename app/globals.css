@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+/* Swingbus showcase tokens. Light by default, dark from the system setting,
+   and the theme switch overrides either through data-theme on <html>. */
+:root {
+  --page: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #eef1f5;
+  --fg: #111827;
+  --muted: #4b5563;
+  --line: #dfe3ea;
+  --accent: #2563eb;
+  --accent-fg: #ffffff;
+  --accent-soft: #e8efff;
+  --glow: rgba(37, 99, 235, 0.18);
+  --grid-line: rgba(17, 24, 39, 0.06);
+  --sim: #2563eb;
+  --meas: #ea580c;
+  --err: #16a34a;
+  --danger: #c81e1e;
+  --danger-soft: #fdecec;
+  --success: #15803d;
+  --success-soft: #e3f6e9;
+  --shadow: 0 18px 50px rgba(30, 41, 70, 0.12);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0b0e14;
+    --surface: #141922;
+    --surface-2: #1b212d;
+    --fg: #eef1f6;
+    --muted: #a7b0c0;
+    --line: #283041;
+    --accent: #4f8cf7;
+    --accent-fg: #0b1220;
+    --accent-soft: #16223a;
+    --glow: rgba(79, 140, 247, 0.22);
+    --grid-line: rgba(238, 241, 246, 0.05);
+    --sim: #60a5fa;
+    --meas: #fb923c;
+    --err: #4ade80;
+    --danger: #f87171;
+    --danger-soft: #2d1719;
+    --success: #4ade80;
+    --success-soft: #12261a;
+    --shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --page: #0b0e14;
+  --surface: #141922;
+  --surface-2: #1b212d;
+  --fg: #eef1f6;
+  --muted: #a7b0c0;
+  --line: #283041;
+  --accent: #4f8cf7;
+  --accent-fg: #0b1220;
+  --accent-soft: #16223a;
+  --glow: rgba(79, 140, 247, 0.22);
+  --grid-line: rgba(238, 241, 246, 0.05);
+  --sim: #60a5fa;
+  --meas: #fb923c;
+  --err: #4ade80;
+  --danger: #f87171;
+  --danger-soft: #2d1719;
+  --success: #4ade80;
+  --success-soft: #12261a;
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-sim: var(--sim);
+  --color-meas: var(--meas);
+  --color-err: var(--err);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --font-sans: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --shadow-lift: var(--shadow);
+  --radius-panel: 14px;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 84px;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+body {
+  background: var(--page);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection { background: color-mix(in srgb, var(--accent) 28%, transparent); }
+
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+/* Pictures come in a light and a dark version; show the one that matches the theme */
+.only-dark { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .only-light { display: none; }
+  :root:not([data-theme="light"]) .only-dark { display: block; }
+}
+:root[data-theme="dark"] .only-light { display: none; }
+:root[data-theme="dark"] .only-dark { display: block; }
+
+/* The faint engineering-paper grid behind the hero */
+.paper {
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 40%, transparent 100%);
+}
+
+/* Form controls share one look */
+.field {
+  width: 100%;
+  font: inherit;
+  font-size: 15px;
+  color: var(--fg);
+  background: var(--page);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 11px 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.field::placeholder { color: color-mix(in srgb, var(--muted) 70%, transparent); }
+.field:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+.field[aria-invalid="true"] { border-color: var(--danger); }
+select.field {
+  appearance: none;
+  padding-right: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%238791a3' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 12px;
+}
+
+/* Range sliders in the accent colour */
+input[type="range"] { accent-color: var(--accent); }
+
+/* Without JavaScript the form posts and comes back to #feedback-sent or #feedback-error */
+#feedback-sent:target { display: block; }
+.form-card:has(#feedback-sent:target) form { display: none; }
+#feedback-error:target { display: block; }

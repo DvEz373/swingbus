@@ -1,5 +1,5 @@
 // POST /api/feedback: the website's feedback form, sent by email to both developers.
-// Takes JSON from the page's script, or a plain form post when JavaScript is off (answered with a redirect).
+// Takes JSON from the page, or a plain form post when JavaScript is off (answered with a redirect).
 //
 // Environment (Vercel → Settings → Environment Variables):
 //   SMTP_USER   the mailbox that sends, e.g. a Gmail address
@@ -10,7 +10,9 @@
 
 import { randomBytes } from "node:crypto";
 import nodemailer from "nodemailer";
-import { AREAS, SETUPS, TYPES, buildEmail } from "./_email.js";
+import { AREAS, SETUPS, TYPES, buildEmail, type Entry } from "@/lib/feedback-email";
+
+export const runtime = "nodejs";
 
 const RECIPIENTS = ["satria.w.hadiwijaya@gmail.com", "ezekiel.devin@gmail.com"];
 
@@ -19,10 +21,14 @@ const MIN_MESSAGE = 10;
 // A person takes longer than this to fill in the form; most bots do not
 const MIN_FILL_MS = 3000;
 
-const clean = (v, max) => (typeof v === "string" ? v.trim().slice(0, max) : "");
-const pick = (v, table, fallback) => (Object.hasOwn(table, v) ? v : fallback);
+type Body = Record<string, unknown>;
 
-function read(body) {
+const clean = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
+const pick = (v: unknown, table: Record<string, unknown>, fallback: string) =>
+  typeof v === "string" && Object.hasOwn(table, v) ? v : fallback;
+const newRef = () => "SB-" + randomBytes(3).toString("hex").toUpperCase();
+
+function read(body: Body) {
   const entry = {
     type: pick(body.type, TYPES, ""),
     area: pick(body.area, AREAS, "other"),
@@ -32,7 +38,7 @@ function read(body) {
     subject: clean(body.subject, LIMITS.subject).replace(/[\r\n]+/g, " "),
     message: clean(body.message, LIMITS.message),
   };
-  const errors = {};
+  const errors: Record<string, string> = {};
   if (!entry.type) errors.type = "Choose what kind of message this is.";
   if (entry.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(entry.email)) errors.email = "That email address does not look right.";
   if (entry.message.length < MIN_MESSAGE) errors.message = `Write at least ${MIN_MESSAGE} characters.`;
@@ -43,32 +49,32 @@ function read(body) {
   return { entry, errors };
 }
 
-function looksLikeBot(body) {
+function looksLikeBot(body: Body) {
   if (body.website) return true; // the hidden field only bots fill in
   const started = Number(body.started);
   return Number.isFinite(started) && started > 0 && Date.now() - started < MIN_FILL_MS;
 }
 
-export default async function handler(req, res) {
-  const fromPage = (req.headers["content-type"] || "").includes("application/json");
-  const reply = (status, payload, anchor) =>
-    fromPage ? res.status(status).json(payload) : res.redirect(303, `/#${anchor}`);
+export async function POST(req: Request) {
+  const fromPage = (req.headers.get("content-type") || "").includes("application/json");
+  const reply = (status: number, payload: object, anchor: string) =>
+    fromPage ? Response.json(payload, { status }) : Response.redirect(new URL(`/#${anchor}`, req.url), 303);
 
-  if (req.method !== "POST") {
-    res.setHeader("Allow", "POST");
-    return res.status(405).json({ ok: false, error: "Use POST." });
+  let body: Body = {};
+  try {
+    body = fromPage ? await req.json() : Object.fromEntries(await req.formData());
+  } catch {
+    // An unreadable body is checked like an empty one
   }
-
-  const body = req.body && typeof req.body === "object" ? req.body : {};
+  if (!body || typeof body !== "object") body = {};
 
   // Bots get the same answer as people, so they learn nothing
-  if (looksLikeBot(body)) return reply(200, { ok: true, ref: "SB-" + randomBytes(3).toString("hex").toUpperCase() }, "feedback-sent");
+  if (looksLikeBot(body)) return reply(200, { ok: true, ref: newRef() }, "feedback-sent");
 
-  const { entry, errors } = read(body);
+  const { entry: fields, errors } = read(body);
   if (Object.keys(errors).length) return reply(400, { ok: false, error: "Some fields need a look.", fields: errors }, "feedback-error");
 
-  entry.date = new Date();
-  entry.ref = "SB-" + randomBytes(3).toString("hex").toUpperCase();
+  const entry: Entry = { ...fields, date: new Date(), ref: newRef() };
   const { subject, html, text } = buildEmail(entry);
 
   if (process.env.FEEDBACK_DRY_RUN === "1") {
