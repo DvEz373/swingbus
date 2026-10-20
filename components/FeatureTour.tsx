@@ -64,7 +64,7 @@ export function FeatureTour() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[320px_1fr] lg:gap-8">
-      <div role="tablist" aria-label="Screens of the app" aria-orientation="vertical" onKeyDown={onKey} className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:grid lg:content-start lg:overflow-visible lg:px-0">
+      <div role="tablist" aria-label="Screens of the app" onKeyDown={onKey} className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:grid lg:content-start lg:overflow-visible lg:px-0">
         {SCREENS.map((s, i) => (
           <button
             key={s.key}

@@ -55,7 +55,9 @@ function Plot({
   const step = niceStep(domain[1] - domain[0], w);
   const xTicks: number[] = [];
   for (let t = Math.ceil(domain[0] / step) * step; t <= domain[1] + 1e-9; t += step) xTicks.push(+t.toFixed(3));
-  const drag = useRef<CursorKey | null>(null);
+  // A mouse moves the cursor at once. A finger only once it slides sideways, or on a tap, so that
+  // scrolling the page past the plot (which the browser takes over, and cancels) leaves the cursors alone.
+  const drag = useRef<{ k: CursorKey; startX: number; active: boolean } | null>(null);
   const svg = useRef<SVGSVGElement>(null);
   const clipId = `clip-${label.replace(/\W/g, "")}`;
   const yDigits = yTicks.some((v) => Math.abs(v * 10 - Math.round(v * 10)) > 1e-6) ? 2 : 1;
@@ -78,12 +80,27 @@ function Plot({
       onPointerDown={(e) => {
         const t = timeAt(e.clientX);
         const k: CursorKey = Math.abs(t - cursors.a) <= Math.abs(t - cursors.b) ? "a" : "b";
-        drag.current = k;
-        e.currentTarget.setPointerCapture(e.pointerId);
-        onCursor(k, t);
+        const active = e.pointerType !== "touch";
+        drag.current = { k, startX: e.clientX, active };
+        if (active) {
+          e.currentTarget.setPointerCapture(e.pointerId);
+          onCursor(k, t);
+        }
       }}
-      onPointerMove={(e) => drag.current && onCursor(drag.current, timeAt(e.clientX))}
-      onPointerUp={() => (drag.current = null)}
+      onPointerMove={(e) => {
+        const d = drag.current;
+        if (!d) return;
+        if (!d.active) {
+          if (Math.abs(e.clientX - d.startX) < 6) return;
+          d.active = true;
+        }
+        onCursor(d.k, timeAt(e.clientX));
+      }}
+      onPointerUp={(e) => {
+        const d = drag.current;
+        if (d && !d.active) onCursor(d.k, timeAt(e.clientX)); // a tap
+        drag.current = null;
+      }}
       onPointerCancel={() => (drag.current = null)}
     >
       <defs>
@@ -179,7 +196,8 @@ export function PlotterDemo() {
     }
   };
 
-  const mainH = width < 520 ? 230 : 300;
+  // One height for every screen, so the plot does not jump once the page has measured itself
+  const mainH = 270;
   const errRange = useMemo<Domain>(() => {
     const i0 = Math.floor(domain[0] / DT), i1 = Math.ceil(domain[1] / DT);
     let m = 0;
@@ -199,14 +217,14 @@ export function PlotterDemo() {
     <div className="overflow-hidden rounded-panel border border-line bg-surface shadow-lift">
       {/* Toolbar, styled after the app's */}
       <div className="flex flex-wrap items-center gap-2 border-b border-line bg-surface-2 px-3 py-2.5 sm:px-4">
-        <div role="tablist" aria-label="Signal" className="flex rounded-lg border border-line bg-surface p-0.5">
+        <div role="group" aria-label="Signal" className="flex rounded-lg border border-line bg-surface p-0.5">
           {(Object.keys(SIGNALS) as SignalKey[]).map((k) => (
             <button
               key={k}
-              role="tab"
-              aria-selected={signal === k}
+              type="button"
+              aria-pressed={signal === k}
               onClick={() => setSignal(k)}
-              className="relative rounded-md px-3 py-1.5 text-sm font-medium text-muted transition-colors aria-selected:text-accent-fg"
+              className="relative rounded-md px-3 py-1.5 text-sm font-medium text-muted transition-colors aria-pressed:text-accent-fg"
             >
               {signal === k && <motion.span layoutId="signal-pill" className="absolute inset-0 -z-0 rounded-md bg-accent" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
               <span className="relative">{SIGNALS[k].label}</span>
@@ -216,8 +234,8 @@ export function PlotterDemo() {
         <label className="ml-1 inline-flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-fg">
           <span className="relative inline-flex">
             <input type="checkbox" className="peer sr-only" checked={showError} onChange={(e) => setShowError(e.target.checked)} />
-            <span className="h-5 w-9 rounded-full bg-line transition-colors peer-checked:bg-err peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent" />
-            <span className="absolute top-0.5 left-0.5 size-4 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4" />
+            <span className="h-5 w-9 rounded-full bg-control transition-colors peer-checked:bg-success peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent" />
+            <span className="absolute top-0.5 left-0.5 size-4 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4 peer-checked:bg-surface" />
           </span>
           Error signal
         </label>
@@ -321,7 +339,7 @@ export function PlotterDemo() {
               </div>
             ))}
           </dl>
-          <div className="mt-4 grid gap-3" aria-live="polite">
+          <div className="mt-4 grid gap-3">
             {rows.map((r) => {
               const a = valueAt(r.s, cursors.a), b = valueAt(r.s, cursors.b);
               return (

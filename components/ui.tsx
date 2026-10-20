@@ -26,8 +26,11 @@ export function ThemedImage({ shot, sizes, priority, className = "" }: { shot: S
   );
 }
 
+// base + one size + one look; the sizes are kept apart so that no two height or padding classes ever meet
 export const button = {
-  base: "inline-flex h-11 items-center justify-center gap-2 rounded-[10px] px-5 text-[15px] font-semibold whitespace-nowrap transition duration-150 active:translate-y-px",
+  base: "inline-flex items-center justify-center gap-2 rounded-[10px] font-semibold whitespace-nowrap transition duration-150 active:translate-y-px",
+  md: "h-11 px-5 text-[15px]",
+  sm: "h-9 px-4 text-sm",
   primary: "bg-accent text-accent-fg shadow-[0_8px_24px_-8px_var(--accent)] hover:brightness-110",
   secondary: "border border-line bg-surface text-fg hover:border-accent",
 };

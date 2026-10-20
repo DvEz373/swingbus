@@ -68,8 +68,8 @@ export function Header() {
             <a
               key={l.id}
               href={`#${l.id}`}
-              aria-current={active === l.id ? "true" : undefined}
-              className="relative rounded-lg px-3 py-2 text-sm font-medium text-muted transition-colors hover:text-fg aria-[current]:text-fg"
+              aria-current={active === l.id ? "location" : undefined}
+              className="relative rounded-lg px-3 py-2 text-sm font-medium text-muted transition-colors hover:text-fg aria-[current=location]:text-fg"
             >
               {active === l.id && (
                 <motion.span layoutId="nav-pill" className="absolute inset-0 -z-10 rounded-lg bg-surface-2" transition={{ type: "spring", stiffness: 400, damping: 34 }} />
@@ -82,7 +82,7 @@ export function Header() {
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <span className="hidden sm:block">
-            <a href="#feedback" className={`${button.base} ${button.secondary} h-9 px-4 text-sm`}>
+            <a href="#feedback" className={`${button.base} ${button.sm} ${button.secondary}`}>
               Send feedback
             </a>
           </span>
@@ -90,7 +90,7 @@ export function Header() {
             type="button"
             className="grid size-9 place-items-center rounded-lg border border-line bg-surface lg:hidden"
             aria-expanded={open}
-            aria-controls="mobile-menu"
+            aria-controls={open ? "mobile-menu" : undefined}
             aria-label={open ? "Close the menu" : "Open the menu"}
             onClick={() => setOpen((o) => !o)}
           >
@@ -99,16 +99,18 @@ export function Header() {
         </div>
       </div>
 
+      {/* The phone menu lies over the page rather than pushing it down, and only fades and slides:
+          animating its height would make Motion measure the page and cancel the scroll to the link */}
       <AnimatePresence>
         {open && (
           <motion.nav
             id="mobile-menu"
             aria-label="Sections"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="overflow-hidden border-t border-line lg:hidden"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute inset-x-0 top-full border-y border-line bg-page shadow-lift lg:hidden"
           >
             <ul className="mx-auto grid max-w-[1200px] gap-1 px-4 py-3 sm:px-6">
               {[...LINKS, { id: "feedback", label: "Send feedback" }].map((l) => (

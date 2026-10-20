@@ -14,6 +14,7 @@ function Slider({ label, unit, value, min, max, step, onChange, hint }: {
   const id = useId();
   // What is being typed stays as typed; only a number in range reaches the calculation
   const [draft, setDraft] = useState<string | null>(null);
+  const decimals = (String(step).split(".")[1] ?? "").length;
   const outOfRange = draft !== null && (draft === "" || !(Number(draft) >= min && Number(draft) <= max));
   return (
     <div>
@@ -31,7 +32,8 @@ function Slider({ label, unit, value, min, max, step, onChange, hint }: {
             onChange={(e) => {
               setDraft(e.target.value);
               const n = Number(e.target.value);
-              if (e.target.value !== "" && n >= min && n <= max) onChange(n);
+              // A typed value lands on the slider's step, so the number and the slider always agree
+              if (e.target.value !== "" && n >= min && n <= max) onChange(Number((Math.round(n / step) * step).toFixed(decimals)));
             }}
             onBlur={() => setDraft(null)}
             aria-invalid={outOfRange || undefined}
@@ -102,7 +104,7 @@ export function CalculatorDemo() {
               {VOLTAGES.map((kv) => <option key={kv} value={kv}>{kv} kV</option>)}
             </select>
           </div>
-          <Slider label="Machine rating" unit="MVA" value={input.mva} min={5} max={500} step={5} onChange={set("mva")} />
+          <Slider label="Machine rating" unit="MVA" value={input.mva} min={5} max={500} step={1} onChange={set("mva")} />
           <Slider label="SCR" value={input.scr} min={1} max={20} step={0.1} onChange={set("scr")} hint="Short-circuit ratio at the connection point" />
           <Slider label="X/R" value={input.xr} min={0.5} max={20} step={0.1} onChange={set("xr")} />
           <Slider label="Retained voltage" unit="pu" value={input.retained} min={0} max={0.9} step={0.01} onChange={set("retained")} hint="The dip you want the test to make, 0 for a bolted fault" />

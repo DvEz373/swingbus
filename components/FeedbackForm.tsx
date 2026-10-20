@@ -4,6 +4,7 @@
 // Without JavaScript it still posts, and the server redirects back to #feedback-sent or #feedback-error.
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { Bug, Bulb, Chat, Check, Question } from "./icons";
 import { button } from "./ui";
 
@@ -41,20 +42,17 @@ export function FeedbackForm() {
   const [failure, setFailure] = useState("");
   const [ref, setRef] = useState("");
   const form = useRef<HTMLFormElement>(null);
-  const started = useRef<HTMLInputElement>(null);
+  // When the form was shown, on the visitor's own clock; the server only sees the time it took
+  const startedAt = useRef(0);
   const done = useRef<HTMLDivElement>(null);
   const emailInput = useRef<HTMLInputElement>(null);
   const messageInput = useRef<HTMLTextAreaElement>(null);
   const refocus = useRef(false);
   const current = KINDS.find((k) => k.value === kind)!;
 
-  const stamp = () => {
-    if (started.current) started.current.value = String(Date.now());
-  };
-  useEffect(stamp, []);
   useEffect(() => {
-    if (state === "sent") done.current?.focus();
-  }, [state]);
+    startedAt.current = Date.now();
+  }, []);
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -62,7 +60,8 @@ export function FeedbackForm() {
     const found: Errors = {};
     if (email.trim() && !EMAIL.test(email.trim())) found.email = "That email address does not look right.";
     if (message.trim().length < 10) found.message = "Write at least 10 characters.";
-    setErrors(found);
+    // The errors are in the page before the cursor moves, so a screen reader reads the field with its error
+    flushSync(() => setErrors(found));
     if (found.email) return emailInput.current?.focus();
     if (found.message) return messageInput.current?.focus();
 
@@ -71,17 +70,20 @@ export function FeedbackForm() {
       const res = await fetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(Object.fromEntries(new FormData(e.currentTarget))),
+        body: JSON.stringify({ ...Object.fromEntries(new FormData(e.currentTarget)), elapsed: Date.now() - startedAt.current }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) {
         if (data.fields) setErrors(data.fields);
-        throw new Error(data.error || "The message could not be sent.");
+        // A field to fix needs no waiting; anything else might pass in a minute
+        const retry = res.status === 400 || res.status === 413 || res.status === 429 ? "" : " Please try again in a minute.";
+        throw new Error((data.error || "The message could not be sent.") + retry);
       }
       setRef(data.ref || "");
       setState("sent");
     } catch (err) {
-      setFailure(`${(err as Error).message} Please try again in a minute.`);
+      const text = err instanceof TypeError ? "The message could not be sent: no connection. Please try again in a minute." : (err as Error).message;
+      setFailure(text);
       setState("idle");
     }
   };
@@ -93,8 +95,9 @@ export function FeedbackForm() {
     setMessage("");
     setEmail("");
     setErrors({});
+    setFailure("");
     setState("idle");
-    stamp();
+    startedAt.current = Date.now();
     if (location.hash === "#feedback-sent" || location.hash === "#feedback-error") history.replaceState(null, "", "#feedback");
     refocus.current = true;
   };
@@ -222,7 +225,6 @@ export function FeedbackForm() {
               <label htmlFor="fb-website">Leave this empty</label>
               <input id="fb-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
             </div>
-            <input ref={started} type="hidden" name="started" />
 
             <AnimatePresence>
               {failure && (
@@ -232,23 +234,33 @@ export function FeedbackForm() {
               )}
             </AnimatePresence>
             <div id="feedback-error" className="hidden rounded-[10px] bg-danger-soft px-4 py-3.5 text-[15px] text-danger">
-              Your message could not be sent. Please try again in a minute.
+              Your message could not be sent. Check that it has at least 10 characters, then try again in a minute.
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-4">
               <p className="text-[13px] text-muted">Sent by email to Satria and Devin.</p>
-              <button type="submit" disabled={state === "sending"} className={`${button.base} ${button.primary} w-full cursor-pointer disabled:cursor-progress disabled:opacity-70 sm:w-auto`}>
+              <button type="submit" disabled={state === "sending"} className={`${button.base} ${button.md} ${button.primary} w-full cursor-pointer disabled:cursor-progress disabled:opacity-70 sm:w-auto`}>
                 {state === "sending" && <span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-current border-r-transparent" />}
                 {state === "sending" ? "Sending…" : "Send to the developers"}
               </button>
             </div>
           </motion.form>
         ) : (
-          <motion.div key="done" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}>
+          <motion.div
+            key="done"
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            onAnimationStart={() => done.current?.focus()}
+          >
             <Done ref={done} reference={ref} onAgain={again} />
           </motion.div>
         )}
       </AnimatePresence>
+      {/* Always in the page, so screen readers hear the result when it changes */}
+      <p role="status" className="sr-only">
+        {state === "sent" ? `Message sent.${ref ? ` Reference ${ref}.` : ""}` : state === "sending" ? "Sending…" : ""}
+      </p>
       {/* The page as the server sends it also carries the thank-you, shown by #feedback-sent:target when JavaScript is off */}
       {state !== "sent" && (
         <div id="feedback-sent" className="hidden">
@@ -272,7 +284,7 @@ function Done({ ref, reference, onAgain }: { ref?: React.Ref<HTMLDivElement>; re
       </motion.div>
       <h3 className="text-xl font-semibold">Thank you, it is on its way</h3>
       <p className="mx-auto mt-2.5 max-w-[42ch] text-muted">Your message is in both our inboxes.{reference && ` Reference ${reference}.`}</p>
-      <a href="#feedback" onClick={onAgain} className={`${button.base} ${button.secondary} mt-6`}>
+      <a href="#feedback" onClick={onAgain} className={`${button.base} ${button.md} ${button.secondary} mt-6`}>
         Send another
       </a>
     </div>

@@ -38,7 +38,7 @@ export default function Home() {
       <noscript>
         <style>{`[data-reveal]{opacity:1!important;transform:none!important}`}</style>
       </noscript>
-      <a href="#overview" className="sr-only z-50 rounded-lg bg-accent px-4 py-2 text-accent-fg focus:not-sr-only focus:fixed focus:top-3 focus:left-3">
+      <a href="#top" className="sr-only z-50 rounded-lg bg-accent text-accent-fg focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:px-4 focus:py-2">
         Skip to the content
       </a>
       <Header />

@@ -49,7 +49,9 @@ export function solveGrid({ kv, mva, scr, xr, retained }: GridInput): GridResult
 // Four significant figures, the way an engineer would write the result down
 export function sig(x: number, digits = 4): string {
   if (!Number.isFinite(x)) return "—";
-  if (x === 0) return "0";
-  const d = Math.max(0, digits - 1 - Math.floor(Math.log10(Math.abs(x))));
-  return x.toFixed(Math.min(d, 6));
+  // Round first, so 9.99996 becomes 10.00 and not 10.000
+  const r = Number(x.toPrecision(digits));
+  if (r === 0) return "0";
+  const d = Math.max(0, digits - 1 - Math.floor(Math.log10(Math.abs(r))));
+  return r.toFixed(Math.min(d, 6));
 }

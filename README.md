@@ -37,7 +37,9 @@ npm run build      # what Vercel runs
 
 ## The feedback form
 
-The form at `#feedback` posts to `/api/feedback`, which checks the message and emails it to both developers with Nodemailer. The email is labelled by type (feedback, bug report, feature request, question), carries the visitor's message and details, and has a reply button. When the visitor left an address, replying goes straight to them. A hidden field and a minimum fill time keep most bots out. It works without JavaScript too.
+The form at `#feedback` posts to `/api/feedback`, which checks the message and emails it to both developers with Nodemailer. The email is labelled by type (feedback, bug report, feature request, question), carries the visitor's message and details, and has a reply button. When the visitor left an address, replying goes straight to them. It works without JavaScript too.
+
+Against spam: a hidden field only bots fill in, a minimum time the form must be open (timed on the visitor's own clock), posts from other websites refused, messages capped at 64 KB, and at most 5 messages per visitor in 10 minutes (100 a day) per server instance. That last limit lives in memory and resets when Vercel starts a new instance, so for a firm limit add a rate-limit rule for `/api/feedback` in Vercel's Firewall.
 
 It needs a mailbox to send from. In Vercel, under **Settings → Environment Variables**, add:
 
