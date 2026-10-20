@@ -1,0 +1,9 @@
+{
+  "name": "swingbus-showcase",
+  "private": true,
+  "type": "module",
+  "description": "The Swingbus showcase page and its feedback form",
+  "dependencies": {
+    "nodemailer": "10.0.14"
+  }
+}
