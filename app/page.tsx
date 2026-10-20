@@ -25,9 +25,9 @@ const PEOPLE = [
 ];
 
 const NOTES = [
-  { icon: Mail, title: "Read by people", text: "It arrives in our inboxes as an email, not in a ticket queue." },
+  { icon: Chat, title: "Read by people", text: "Every message lands on our list, and the two of us read each one." },
   { icon: Flask, title: "Bugs we can reproduce get fixed first", text: "Say what you did, what you expected, and which file type you opened." },
-  { icon: Chat, title: "Want a reply?", text: "Leave your email address. We use it only to answer you." },
+  { icon: Mail, title: "Want a reply?", text: "Leave your email address. We use it only to answer you." },
 ];
 
 const wrap = "mx-auto max-w-[1200px] px-4 sm:px-6";

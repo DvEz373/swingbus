@@ -31,26 +31,35 @@ npm run build      # what Vercel runs
 | `app/layout.tsx`, `app/globals.css` | metadata, fonts, and the colour tokens for light and dark |
 | `components/` | the header, hero, overview, the Plotter and Calculator demos, the screen tour and the form |
 | `lib/lvrt.ts`, `lib/grid.ts` | the demo's test traces, and the Calculator's arithmetic |
-| `app/api/feedback/route.ts` | takes the feedback form and emails it to both developers |
-| `lib/feedback-email.ts` | the email itself, in HTML and plain text |
+| `app/api/feedback/route.ts` | takes the feedback form and hands it to the Google script |
+| `google-apps-script/Code.gs` | the Google Apps Script: saves each message as a row in a Sheet |
+| `lib/feedback.ts` | the form's types and parts of the app, as the Sheet shows them |
 | `public/img`, `public/video` | the pictures (light and dark) and the demo videos |
 
 ## The feedback form
 
-The form at `#feedback` posts to `/api/feedback`, which checks the message and emails it to both developers with Nodemailer. The email is labelled by type (feedback, bug report, feature request, question), carries the visitor's message and details, and has a reply button. When the visitor left an address, replying goes straight to them. It works without JavaScript too.
+The form at `#feedback` posts to `/api/feedback`, which checks the message and hands it to a small Google Apps Script (`google-apps-script/Code.gs`). The script adds it as a row to a Google Sheet in your Drive: when it came, a reference, the type (feedback, bug report, feature request, question), the part of the app, the visitor's name, email and subject, the message, and a **Status** dropdown (New, Read, Fixing, Done, Won't fix) for keeping track. Nothing is emailed, and no password is stored anywhere: Vercel only holds the script's address and a key. It works without JavaScript too.
 
 Against spam: a hidden field only bots fill in, a minimum time the form must be open (timed on the visitor's own clock), posts from other websites refused, messages capped at 64 KB, and at most 5 messages per visitor in 10 minutes (100 a day) per server instance. That last limit lives in memory and resets when Vercel starts a new instance, so for a firm limit add a rate-limit rule for `/api/feedback` in Vercel's Firewall.
 
-It needs a mailbox to send from. In Vercel, under **Settings → Environment Variables**, add:
+### Setting it up (once, about 5 minutes)
 
-| Name | Value |
-| --- | --- |
-| `SMTP_USER` | the sending address, e.g. a Gmail address |
-| `SMTP_PASS` | its password. For Gmail, an app password: Google account → Security → 2-Step Verification → App passwords |
-| `SMTP_HOST` | optional, `smtp.gmail.com` by default |
-| `SMTP_PORT` | optional, `465` by default |
-| `FEEDBACK_DRY_RUN` | optional, `1` writes the email to the function logs instead of sending it |
+1. **Make the Sheet.** Signed in to your Google account, open [sheets.new](https://sheets.new) and name it, e.g. "Swingbus feedback". It is saved in your Drive.
+2. **Add the script.** In the Sheet, open **Extensions → Apps Script**. Delete what is in `Code.gs`, paste the whole of [`google-apps-script/Code.gs`](google-apps-script/Code.gs), and press **Save** (the disk icon).
+3. **Run setup once.** In the toolbar, choose the function **setup** and press **Run**. Google asks for permission: choose your account, then **Advanced → Go to (project name) (unsafe) → Allow**. (Google says "unsafe" for any script it has not reviewed; this one is yours.) When it finishes, the **Execution log** shows a line `FEEDBACK_SCRIPT_TOKEN for Vercel: …`. Copy that key. The Sheet now has a **Feedback** tab with headings.
+4. **Deploy it as a web app.** Press **Deploy → New deployment**, click the gear next to "Select type" and pick **Web app**. Set **Execute as: Me** and **Who has access: Anyone**, then **Deploy**. Copy the **Web app URL** (it ends in `/exec`). Opening it in a browser should show `{"ok":true,"service":"Swingbus feedback",…}`.
+5. **Tell Vercel.** In the Vercel project, **Settings → Environment Variables**, add for **Production** and **Preview**:
 
-Then redeploy. Until `SMTP_USER` and `SMTP_PASS` are set, the form tells visitors it is not set up yet. The two addresses it sends to are in `RECIPIENTS` at the top of `app/api/feedback/route.ts`. For local work, put the same variables in `.env.local`.
+   | Name | Type | Value |
+   | --- | --- | --- |
+   | `FEEDBACK_SCRIPT_URL` | Config | the Web app URL from step 4 |
+   | `FEEDBACK_SCRIPT_TOKEN` | Secret | the key from step 3 |
+
+   Then **Deployments → ⋯ → Redeploy** on the latest deployment.
+6. **Try it.** Send a message from the site: a row appears in the Sheet's **Feedback** tab within a few seconds.
+
+Until both variables are set, the form tells visitors it is not set up yet. `FEEDBACK_DRY_RUN=1` writes the message to the function logs instead of saving it. To let someone else read the list, share the Sheet with them as you would any Google file. If you edit the script later, publish the change with **Deploy → Manage deployments → ✏️ → Version: New version → Deploy**; the URL stays the same. For local work, put the variables in `.env.local`.
+
+**If it does not work**, look at Vercel's **Logs** for lines starting with `Feedback:`. "refused the message: unauthorized" means the key in Vercel does not match the script's; "answered 200 with <!doctype html>… Sign in" means the deployment's access is not set to **Anyone**.
 
 © 2026 Swingbus. PSCAD, PSS®E and MATLAB are trademarks of their owners.

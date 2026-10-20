@@ -1,21 +1,17 @@
-// POST /api/feedback: the website's feedback form, sent by email to both developers.
+// POST /api/feedback: the website's feedback form. Each message is checked here, then handed to the
+// Google Apps Script in google-apps-script/Code.gs, which saves it as a row in a Google Sheet.
 // Takes JSON from the page, or a plain form post when JavaScript is off (answered with a redirect).
 //
 // Environment (Vercel → Settings → Environment Variables):
-//   SMTP_USER   the mailbox that sends, e.g. a Gmail address
-//   SMTP_PASS   its password; for Gmail an app password (Google account → Security → App passwords)
-//   SMTP_HOST   optional, smtp.gmail.com by default
-//   SMTP_PORT   optional, 465 by default (TLS)
-//   FEEDBACK_DRY_RUN=1   optional, builds the email and logs it instead of sending (for previews)
+//   FEEDBACK_SCRIPT_URL     the script's web app URL, https://script.google.com/macros/s/…/exec
+//   FEEDBACK_SCRIPT_TOKEN   the key that the script's setup printed
+//   FEEDBACK_DRY_RUN=1      optional, logs the message instead of saving it (for previews)
 
 import { randomBytes } from "node:crypto";
-import nodemailer from "nodemailer";
-import { AREAS, SETUPS, TYPES, buildEmail, type Entry } from "@/lib/feedback-email";
+import { AREAS, SETUPS, TYPES } from "@/lib/feedback";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
-
-const RECIPIENTS = ["satria.w.hadiwijaya@gmail.com", "ezekiel.devin@gmail.com"];
 
 const LIMITS = { name: 80, email: 200, subject: 120, message: 5000 };
 const MIN_MESSAGE = 10;
@@ -121,41 +117,59 @@ export async function POST(req: Request) {
   const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || req.headers.get("x-real-ip") || "unknown";
   if (overLimit(ip)) return reply(429, { ok: false, error: "Too many messages in a short time. Please wait a few minutes." }, "feedback-error");
 
-  const entry: Entry = { ...fields, date: new Date(), ref: newRef() };
-  const { subject, html, text } = buildEmail(entry);
+  const entry = {
+    ref: newRef(),
+    date: new Date().toISOString(),
+    typeLabel: TYPES[fields.type],
+    areaLabel: AREAS[fields.area],
+    setupLabel: fields.setup ? SETUPS[fields.setup] : "",
+    name: fields.name,
+    email: fields.email,
+    subject: fields.subject,
+    message: fields.message,
+  };
 
   if (process.env.FEEDBACK_DRY_RUN === "1") {
-    console.log("Feedback (dry run, not sent)", { to: RECIPIENTS, subject, text });
+    console.log("Feedback (dry run, not saved)", entry);
     return reply(200, { ok: true, ref: entry.ref }, "feedback-sent");
   }
 
-  const { SMTP_USER, SMTP_PASS, SMTP_HOST = "smtp.gmail.com", SMTP_PORT = "465" } = process.env;
-  if (!SMTP_USER || !SMTP_PASS) {
-    console.error("Feedback: SMTP_USER and SMTP_PASS are not set");
+  const url = process.env.FEEDBACK_SCRIPT_URL?.trim();
+  const token = process.env.FEEDBACK_SCRIPT_TOKEN?.trim();
+  if (!url || !token) {
+    console.error("Feedback: FEEDBACK_SCRIPT_URL and FEEDBACK_SCRIPT_TOKEN are not set");
+    return reply(503, { ok: false, error: "The feedback form is not set up yet." }, "feedback-error");
+  }
+  // The key only ever goes to Google's script host, even if the URL is pasted wrong
+  if (!/^https:\/\/script\.google\.com\//.test(url)) {
+    console.error("Feedback: FEEDBACK_SCRIPT_URL must start with https://script.google.com/");
     return reply(503, { ok: false, error: "The feedback form is not set up yet." }, "feedback-error");
   }
 
-  const transport = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: Number(SMTP_PORT),
-    secure: Number(SMTP_PORT) === 465,
-    auth: { user: SMTP_USER, pass: SMTP_PASS },
-    connectionTimeout: 10_000,
-    greetingTimeout: 10_000,
-    socketTimeout: 20_000,
-  });
-
+  // Google answers a web app POST with a redirect to the result, which fetch follows
+  let result: { ok?: boolean; error?: string } = {};
   try {
-    await transport.sendMail({
-      from: { name: "Swingbus Feedback", address: SMTP_USER },
-      to: RECIPIENTS,
-      replyTo: entry.email ? { name: entry.name || entry.email, address: entry.email } : undefined,
-      subject,
-      text,
-      html,
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, entry }),
+      redirect: "follow",
+      signal: AbortSignal.timeout(25_000),
     });
+    const raw = await res.text();
+    try {
+      result = JSON.parse(raw);
+    } catch {
+      // A Google sign-in page instead of JSON: the deployment's access is not set to "Anyone"
+      throw new Error(`the script answered ${res.status} with ${raw.slice(0, 120).replace(/\s+/g, " ")}…`);
+    }
   } catch (err) {
-    console.error("Feedback: sending failed", err);
+    console.error("Feedback: the Google script could not be reached", err);
+    return reply(502, { ok: false, error: "The message could not be sent." }, "feedback-error");
+  }
+
+  if (!result.ok) {
+    console.error("Feedback: the Google script refused the message:", result.error);
     return reply(502, { ok: false, error: "The message could not be sent." }, "feedback-error");
   }
 
