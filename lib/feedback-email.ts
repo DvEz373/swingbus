@@ -1,14 +1,14 @@
 // The email the feedback form sends: a subject line, an HTML body and a plain-text body.
 // The HTML is tables and inline styles only, the way mail clients need it, and stays light in every client.
 
-export const TYPES = {
-  feedback: { label: "Feedback", color: "#2563eb", soft: "#e8efff" },
-  bug: { label: "Bug report", color: "#dc2626", soft: "#fdecec" },
+export const TYPES: Record<string, { label: string; color: string; soft: string }> = {
+  feedback: { label: "Feedback", color: "#2563eb", soft: "#eef3ff" },
+  bug: { label: "Bug report", color: "#c81e1e", soft: "#fdecec" },
   feature: { label: "Feature request", color: "#7c3aed", soft: "#f1eafe" },
-  question: { label: "Question", color: "#b45309", soft: "#fdf2e2" },
+  question: { label: "Question", color: "#a1480a", soft: "#fdf2e2" },
 };
 
-export const AREAS = {
+export const AREAS: Record<string, string> = {
   plotter: "Grid Plotter",
   calculator: "Grid Calculator",
   files: "Opening files",
@@ -16,19 +16,19 @@ export const AREAS = {
   other: "Something else",
 };
 
-export const SETUPS = {
+export const SETUPS: Record<string, string> = {
   windows: "Windows app",
   html: "HTML file in a browser",
   unsure: "Not sure",
 };
 
-const escape = (s) =>
-  String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const escape = (s: unknown) =>
+  String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string);
 
-const paragraphs = (s) => escape(s).replace(/\r?\n/g, "<br>");
+const paragraphs = (s: string) => escape(s).replace(/\r?\n/g, "<br>");
 
 // Submissions are timestamped in Jakarta time, where the developers are
-function when(date) {
+function when(date: Date) {
   return (
     new Intl.DateTimeFormat("en-GB", {
       timeZone: "Asia/Jakarta",
@@ -38,16 +38,28 @@ function when(date) {
   );
 }
 
-export function buildEmail(entry) {
+export type Entry = {
+  type: string;
+  area: string;
+  setup: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  date: Date;
+  ref: string;
+};
+
+export function buildEmail(entry: Entry) {
   const type = TYPES[entry.type];
   const sender = entry.name || "an anonymous visitor";
   const subject = `[Swingbus · ${type.label}] ${entry.subject}`;
 
-  const rows = [
+  const rows: [string, string][] = [
     ["From", entry.name || "Not given"],
     ["Email", entry.email || "Not given, so no reply is possible"],
     ["About", AREAS[entry.area]],
-    ...(entry.setup ? [["Runs it as", SETUPS[entry.setup]]] : []),
+    ...(entry.setup ? [["Runs it as", SETUPS[entry.setup]] as [string, string]] : []),
     ["Sent", when(entry.date)],
   ];
 
@@ -135,7 +147,7 @@ export function buildEmail(entry) {
 </body>
 </html>`;
 
-  const pad = (k) => (k + ":").padEnd(12);
+  const pad = (k: string) => (k + ":").padEnd(12);
   const text = [
     `${type.label.toUpperCase()} · ${AREAS[entry.area]}`,
     "",
