@@ -28,6 +28,10 @@
     --accent-soft: #e8efff;
     --shadow: 0 18px 50px rgba(30, 41, 70, 0.12);
     --radius: 14px;
+    --danger: #c81e1e;
+    --danger-soft: #fdecec;
+    --success: #15803d;
+    --success-soft: #e3f6e9;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -41,10 +45,14 @@
       --accent-text: #0b1220;
       --accent-soft: #17233b;
       --shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+      --danger: #f87171;
+      --danger-soft: #2d1719;
+      --success: #4ade80;
+      --success-soft: #12261a;
     }
   }
   * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; scroll-padding-top: 80px; }
   body {
     margin: 0;
     background: var(--page);
@@ -81,6 +89,10 @@
   .mark { width: 28px; height: 28px; border-radius: 7px; background: var(--accent); display: grid; place-items: center; }
   .mark path { stroke: #fff; }
   header.top .button { height: 38px; padding: 0 16px; font-size: 14px; }
+  nav.links { display: flex; align-items: center; gap: 4px; }
+  nav.links a:not(.button) { padding: 8px 12px; border-radius: 8px; font-size: 14px; font-weight: 500; color: var(--text-2); text-decoration: none; }
+  nav.links a:not(.button):hover { color: var(--text); background: var(--surface-2); }
+  .top-actions { display: flex; align-items: center; gap: 12px; }
 
   /* Hero: words on the left, the 30 s cut playing on the right */
   .hero { padding: 72px 0 88px; }
@@ -88,6 +100,9 @@
   .hero h1 { font-size: clamp(34px, 3.1vw, 46px); line-height: 1.1; }
   .hero p { margin-top: 20px; font-size: 19px; }
   .hero .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+  .facts { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 28px; padding: 0; list-style: none; font-size: 14px; color: var(--text-2); }
+  .facts li { display: inline-flex; align-items: center; gap: 8px; }
+  .facts li::before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: var(--accent); }
   .media { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow); background: var(--surface); }
 
   section { padding: 88px 0; }
@@ -130,6 +145,91 @@
   .person p { margin-top: 4px; font-size: 15px; }
   .person a { display: inline-block; margin-top: 10px; color: var(--accent); font-weight: 600; font-size: 15px; text-decoration: none; }
   .person a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .closing.with-next { padding-bottom: 0; }
+
+  /* Overview: what Swingbus is, its two tools, how a study goes, and what it promises */
+  .eyebrow { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+  .overview { padding-top: 24px; }
+  .overview .lede { font-size: 18px; }
+  .tools { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .tool { position: relative; overflow: hidden; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); padding: 32px; display: grid; gap: 14px; align-content: start; }
+  .tool::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 25%, transparent)); }
+  .tool .icon { width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
+  .tool .icon svg { width: 26px; height: 26px; }
+  .tool h3 { font-size: 22px; }
+  .tool .tag { font-size: 14px; font-weight: 600; color: var(--accent); }
+  .ticks { margin: 4px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+  .ticks li { display: grid; grid-template-columns: 20px 1fr; gap: 10px; color: var(--text-2); font-size: 15px; }
+  .ticks li::before { content: ""; width: 18px; height: 18px; margin-top: 3px; border-radius: 999px; background: var(--accent-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M5 9.5l2.6 2.5L13 6.5' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 18px no-repeat; }
+  .tool .more { margin-top: 6px; color: var(--accent); font-weight: 600; font-size: 15px; text-decoration: none; justify-self: start; }
+  .tool .more:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+  .steps { list-style: none; margin: 56px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; counter-reset: step; }
+  .steps li { counter-increment: step; position: relative; padding-top: 56px; }
+  .steps li::before { content: counter(step); position: absolute; top: 0; left: 0; width: 40px; height: 40px; border-radius: 999px; display: grid; place-items: center; background: var(--accent); color: var(--accent-text); font-weight: 700; }
+  .steps li:not(:last-child)::after { content: ""; position: absolute; top: 20px; left: 52px; right: -12px; height: 2px; background: repeating-linear-gradient(90deg, var(--border) 0 8px, transparent 8px 14px); }
+  .steps h3 { font-size: 18px; }
+  .steps p { margin-top: 6px; font-size: 15px; }
+
+  .promises { list-style: none; margin: 56px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+  .promises li { padding: 22px 24px; display: grid; gap: 4px; }
+  .promises li + li { border-left: 1px solid var(--border); }
+  .promises strong { font-size: 16px; }
+  .promises span { font-size: 14px; color: var(--text-2); }
+
+  /* Feedback: why write, then the form */
+  .feedback .wrap { display: grid; grid-template-columns: 4fr 6fr; gap: 56px; align-items: start; }
+  .feedback .notes { margin: 28px 0 0; padding: 0; list-style: none; display: grid; gap: 18px; }
+  .feedback .notes li { display: grid; grid-template-columns: 40px 1fr; gap: 14px; align-items: start; }
+  .feedback .notes .icon { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
+  .feedback .notes .icon svg { width: 20px; height: 20px; }
+  .feedback .notes strong { display: block; color: var(--text); font-weight: 600; }
+  .feedback .notes span { color: var(--text-2); font-size: 15px; }
+
+  .form-card { border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow); padding: 32px; }
+  form { display: grid; gap: 20px; }
+  fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+  .label, legend { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; padding: 0; color: var(--text); }
+  .label small, legend small { font-weight: 400; color: var(--text-2); }
+  .kinds { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .kind { position: relative; }
+  .kind input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .kind span { display: grid; gap: 4px; justify-items: center; text-align: center; padding: 12px 6px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2); font-size: 14px; font-weight: 600; color: var(--text-2); transition: border-color .15s ease, background-color .15s ease, color .15s ease; }
+  .kind span svg { width: 20px; height: 20px; }
+  .kind input:hover + span { border-color: var(--accent); }
+  .kind input:checked + span { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+  .kind input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  input[type=text], input[type=email], select, textarea {
+    width: 100%; font: inherit; font-size: 15px; color: var(--text); background: var(--page);
+    border: 1px solid var(--border); border-radius: 10px; padding: 11px 14px; transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  select { appearance: none; padding-right: 40px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%238791a3' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; background-size: 12px; }
+  textarea { min-height: 160px; resize: vertical; line-height: 1.55; }
+  input::placeholder, textarea::placeholder { color: color-mix(in srgb, var(--text-2) 70%, transparent); }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+  [aria-invalid=true] { border-color: var(--danger) !important; }
+  .field-error { margin-top: 6px; font-size: 13px; color: var(--danger); }
+  .field-error:empty { display: none; }
+  .hint span:last-child { white-space: nowrap; }
+  .hint { display: flex; justify-content: space-between; gap: 12px; margin-top: 6px; font-size: 13px; color: var(--text-2); }
+  .trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+  .send { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .send p { font-size: 13px; }
+  .send .button { border: 0; cursor: pointer; font: inherit; font-weight: 600; font-size: 15px; }
+  .send .button[disabled] { opacity: .7; cursor: progress; }
+  .spinner { width: 16px; height: 16px; border-radius: 999px; border: 2px solid currentColor; border-right-color: transparent; display: none; }
+  .busy .spinner { display: inline-block; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .status { display: none; border-radius: 10px; padding: 14px 16px; font-size: 15px; }
+  .status.error, #feedback-error:target { display: block; background: var(--danger-soft); color: var(--danger); }
+  .done { display: none; text-align: center; padding: 40px 12px; }
+  .done .check { width: 64px; height: 64px; margin: 0 auto 18px; border-radius: 999px; display: grid; place-items: center; background: var(--success-soft); color: var(--success); }
+  .done p { margin: 10px auto 0; }
+  .done .button { margin-top: 24px; cursor: pointer; font: inherit; font-weight: 600; }
+  .form-card.sent form, .form-card:has(#feedback-sent:target) form { display: none; }
+  .form-card.sent .done, #feedback-sent:target { display: block; }
+
   footer { border-top: 1px solid var(--border); padding: 28px 0; font-size: 14px; color: var(--text-2); }
   footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 
@@ -154,6 +254,21 @@
     .people { grid-template-columns: 1fr; }
     .person { padding: 20px; }
     .wrap { padding: 0 16px; }
+    .tools, .steps, .feedback .wrap, .row { grid-template-columns: 1fr; }
+    .feedback .wrap { gap: 32px; }
+    .tool, .form-card { padding: 24px; }
+    .steps { gap: 28px; margin-top: 40px; }
+    .steps li { padding: 0 0 0 56px; min-height: 40px; }
+    .steps li:not(:last-child)::after { top: 48px; bottom: -22px; left: 19px; right: auto; width: 2px; height: auto; background: repeating-linear-gradient(180deg, var(--border) 0 8px, transparent 8px 14px); }
+    .promises { grid-template-columns: 1fr 1fr; margin-top: 40px; }
+    .promises li:nth-child(3) { border-left: 0; }
+    .promises li:nth-child(n+3) { border-top: 1px solid var(--border); }
+    nav.links { display: none; }
+  }
+  @media (max-width: 520px) {
+    .kinds { grid-template-columns: 1fr 1fr; }
+    .promises li { padding: 18px; }
+    .send .button { width: 100%; }
   }
 </style>
 </head>
@@ -165,7 +280,15 @@
       <span class="mark" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 20 20"><path d="M3 14 L7.5 9 L11 12 L17 5" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       Swingbus
     </a>
-    <a class="button secondary" href="#tour">Watch the tour</a>
+    <div class="top-actions">
+      <nav class="links" aria-label="Sections">
+        <a href="#overview">What it does</a>
+        <a href="#plotter">Plotter</a>
+        <a href="#calculator">Calculator</a>
+        <a href="#tour">Tour</a>
+      </nav>
+      <a class="button secondary" href="#feedback">Send feedback</a>
+    </div>
   </div>
 </header>
 
@@ -177,13 +300,78 @@
         <p>An offline toolkit for grid-connection studies: PSCAD results next to field data, and the grid behind every test.</p>
         <div class="actions">
           <a class="button primary" href="#tour">Watch the tour</a>
+          <a class="button secondary" href="#overview">What it does</a>
         </div>
+        <ul class="facts" aria-label="At a glance">
+          <li>Grid Plotter and Grid Calculator</li>
+          <li>Runs offline</li>
+          <li>No account</li>
+        </ul>
       </div>
       <div class="media">
         <video src="video/swingbus-demo-30s.mp4" poster="video/swingbus-demo-30s-poster.jpg" autoplay muted loop playsinline preload="metadata" width="1920" height="1080" aria-label="Swingbus in 30 seconds: a simulation and a measurement overlaid, the error between them, then the Grid Calculator and its voltage plots"></video>
       </div>
     </div>
   </div>
+
+  <section class="overview" id="overview" aria-labelledby="overview-title">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">What Swingbus does</span>
+        <h2 id="overview-title">Two tools for one study</h2>
+        <p class="lede">A grid-connection study asks two things: does the plant's simulation model behave like the real plant, and what grid did each test see? The Grid Plotter answers the first and the Grid Calculator the second. Both run on your PC with the files you already have.</p>
+      </div>
+
+      <div class="tools">
+        <article class="tool reveal">
+          <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M6 15l4-6 3 4 3-7 3 5"/></svg></span>
+          <span class="tag">Grid Plotter</span>
+          <h3>Compare the simulation with the field</h3>
+          <ul class="ticks">
+            <li>Overlay PSCAD, PSS®E, COMTRADE, MATLAB and CSV runs on the same axes</li>
+            <li>Zoom to the fault and read every signal at two cursors, with the difference</li>
+            <li>Turn the error between two signals into a signal of its own</li>
+            <li>Min, max and mean per signal, and one tab for each test case</li>
+          </ul>
+          <a class="more" href="#plotter">More on the Plotter ↓</a>
+        </article>
+        <article class="tool reveal">
+          <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4"/><path d="M6 9h4l2 3 2-3h4"/><path d="M6 15h12"/><path d="M18 12h4"/><path d="M12 15v5"/><path d="M10 20h4"/></svg></span>
+          <span class="tag">Grid Calculator</span>
+          <h3>Work out the grid behind the test</h3>
+          <ul class="ticks">
+            <li>SCR and X/R to the source impedance Zs, in ohms and per unit</li>
+            <li>The fault impedance Zf for a voltage dip or swell, with AEMO DMAT values</li>
+            <li>1PG, 2PG and LL faults by symmetrical components</li>
+            <li>The SCR the machine sees at its terminal, through the transformer</li>
+          </ul>
+          <a class="more" href="#calculator">More on the Calculator ↓</a>
+        </article>
+      </div>
+
+      <ol class="steps">
+        <li class="reveal">
+          <h3>Open what you have</h3>
+          <p>Simulator outputs and recorder files, as they come. Nothing to convert first.</p>
+        </li>
+        <li class="reveal">
+          <h3>Compare and measure</h3>
+          <p>Overlay the simulation on the measurement, zoom to the event and read the cursors.</p>
+        </li>
+        <li class="reveal">
+          <h3>Work out the grid</h3>
+          <p>Get Zs and Zf for the test, and see the voltage along the circuit.</p>
+        </li>
+      </ol>
+
+      <ul class="promises reveal" aria-label="How it runs">
+        <li><strong>Offline</strong><span>No internet needed</span></li>
+        <li><strong>No account</strong><span>Open it and start</span></li>
+        <li><strong>Private</strong><span>Your data stays on your PC</span></li>
+        <li><strong>Two ways to run</strong><span>A Windows app or one HTML file</span></li>
+      </ul>
+    </div>
+  </section>
 
   <section aria-labelledby="plotter">
     <div class="wrap">
@@ -279,7 +467,7 @@
     </div>
   </section>
 
-  <section class="closing" aria-labelledby="about">
+  <section class="closing with-next" aria-labelledby="about">
     <div class="wrap">
       <div class="panel about reveal">
         <div>
@@ -310,6 +498,109 @@
       </div>
     </div>
   </section>
+  <section class="feedback closing" id="feedback" aria-labelledby="feedback-title">
+    <div class="wrap">
+      <div class="reveal">
+        <span class="eyebrow">Feedback</span>
+        <h2 id="feedback-title" style="margin-top:14px">Tell us what to fix next</h2>
+        <p style="margin-top:14px">Found a bug, missing a feature, or not sure how something works? Write to us here. Every message goes straight to both developers.</p>
+        <ul class="notes">
+          <li>
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"/><path d="M4 7l8 6 8-6"/></svg></span>
+            <div><strong>Read by people</strong><span>It arrives in our inboxes as an email, not in a ticket queue.</span></div>
+          </li>
+          <li>
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v3.5L5 18a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3L14 6.5V3"/><path d="M7.5 14h9"/></svg></span>
+            <div><strong>Bugs we can reproduce get fixed first</strong><span>Say what you did, what you expected, and which file type you opened.</span></div>
+          </li>
+          <li>
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg></span>
+            <div><strong>Want a reply?</strong><span>Leave your email address. We use it only to answer you.</span></div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="form-card reveal">
+        <form id="feedback-form" action="/api/feedback" method="post" novalidate>
+          <fieldset>
+            <legend>What is it about?</legend>
+            <div class="kinds">
+              <label class="kind"><input type="radio" name="type" value="feedback" checked><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>Feedback</span></label>
+              <label class="kind"><input type="radio" name="type" value="bug"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="13" rx="5"/><path d="M12 11v9M7 12H3M21 12h-4M7 17l-3 2M17 17l3 2M7 8 4 6M17 8l3-2M9 7a3 3 0 0 1 6 0"/></svg>Bug report</span></label>
+              <label class="kind"><input type="radio" name="type" value="feature"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.8V16h5v-.3c0-.7.4-1.4 1-1.8A6 6 0 0 0 12 3z"/></svg>Feature idea</span></label>
+              <label class="kind"><input type="radio" name="type" value="question"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6"/><path d="M12 17.5h.01"/></svg>Question</span></label>
+            </div>
+          </fieldset>
+
+          <div class="row">
+            <div>
+              <label class="label" for="fb-name">Name <small>(optional)</small></label>
+              <input type="text" id="fb-name" name="name" maxlength="80" autocomplete="name" placeholder="Your name">
+            </div>
+            <div>
+              <label class="label" for="fb-email">Email <small>(optional, for a reply)</small></label>
+              <input type="email" id="fb-email" name="email" maxlength="200" autocomplete="email" placeholder="you@example.com" aria-describedby="fb-email-error">
+              <div class="field-error" id="fb-email-error"></div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label class="label" for="fb-area">Which part?</label>
+              <select id="fb-area" name="area">
+                <option value="plotter">Grid Plotter</option>
+                <option value="calculator">Grid Calculator</option>
+                <option value="files">Opening files</option>
+                <option value="website">This website</option>
+                <option value="other" selected>Something else</option>
+              </select>
+            </div>
+            <div id="fb-setup-field" hidden>
+              <label class="label" for="fb-setup">How do you run it?</label>
+              <select id="fb-setup" name="setup">
+                <option value="windows">Windows app</option>
+                <option value="html">HTML file in a browser</option>
+                <option value="unsure" selected>Not sure</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="label" for="fb-subject">Subject <small>(optional)</small></label>
+            <input type="text" id="fb-subject" name="subject" maxlength="120" placeholder="In a few words">
+          </div>
+
+          <div>
+            <label class="label" for="fb-message">Message</label>
+            <textarea id="fb-message" name="message" required minlength="10" maxlength="5000" placeholder="What did you like, what got in your way, what should come next?" aria-describedby="fb-message-error fb-count"></textarea>
+            <div class="field-error" id="fb-message-error"></div>
+            <div class="hint"><span id="fb-tip">Plain text is fine. Line breaks are kept.</span><span id="fb-count" aria-live="polite">0 / 5000</span></div>
+          </div>
+
+          <div class="trap" aria-hidden="true">
+            <label for="fb-website">Leave this empty</label>
+            <input type="text" id="fb-website" name="website" tabindex="-1" autocomplete="off">
+          </div>
+          <input type="hidden" name="started" id="fb-started">
+
+          <div class="status" id="fb-status" role="alert"></div>
+          <div class="status" id="feedback-error">Your message could not be sent. Please try again in a minute.</div>
+
+          <div class="send">
+            <p>Sent by email to Satria and Devin.</p>
+            <button class="button primary" type="submit" id="fb-submit"><span class="spinner" aria-hidden="true"></span><span class="label-text">Send to the developers</span></button>
+          </div>
+        </form>
+
+        <div class="done" id="feedback-sent" tabindex="-1">
+          <div class="check" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+          <h3>Thank you, it is on its way</h3>
+          <p>Your message is in both our inboxes. <span id="fb-ref"></span></p>
+          <a class="button secondary" href="#feedback" id="fb-again">Send another</a>
+        </div>
+      </div>
+    </div>
+  </section>
 </main>
 
 <footer>
@@ -327,6 +618,93 @@
     hero.pause();
     hero.controls = true;
   }
+
+  // The feedback form: checked here first, then sent to /api/feedback, which emails both developers.
+  // Without JavaScript the form still posts, and the function redirects back to #feedback-sent or #feedback-error.
+  (() => {
+    const form = document.getElementById("feedback-form");
+    const card = form.closest(".form-card");
+    const $ = (id) => document.getElementById(id);
+    const message = $("fb-message"), email = $("fb-email"), status = $("fb-status"), submit = $("fb-submit");
+    const tips = {
+      feedback: ["What did you like, what got in your way, what should come next?", "Plain text is fine. Line breaks are kept."],
+      bug: ["1. What I did\n2. What I expected\n3. What happened instead", "The file type you opened and any error text help a lot."],
+      feature: ["What would you like Swingbus to do, and in which study would it help?", "A short example from your work helps us size it."],
+      question: ["Ask away.", "Leave your email so we can answer."],
+    };
+
+    const started = () => { $("fb-started").value = Date.now(); };
+    started();
+
+    const setError = (input, text) => {
+      $(input.id + "-error").textContent = text || "";
+      if (text) input.setAttribute("aria-invalid", "true");
+      else input.removeAttribute("aria-invalid");
+    };
+
+    const onType = () => {
+      const type = form.elements.type.value;
+      $("fb-setup-field").hidden = type !== "bug";
+      message.placeholder = tips[type][0];
+      $("fb-tip").textContent = tips[type][1];
+    };
+    form.addEventListener("change", (e) => { if (e.target.name === "type") onType(); });
+    onType();
+
+    message.addEventListener("input", () => {
+      $("fb-count").textContent = `${message.value.length} / 5000`;
+      if (message.value.trim().length >= 10) setError(message);
+    });
+    email.addEventListener("input", () => setError(email));
+
+    const busy = (on) => {
+      submit.disabled = on;
+      submit.classList.toggle("busy", on);
+      submit.querySelector(".label-text").textContent = on ? "Sending…" : "Send to the developers";
+    };
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      status.className = "status";
+      let bad = null;
+      if (email.value.trim() && !email.checkValidity()) { setError(email, "That email address does not look right."); bad ??= email; }
+      if (message.value.trim().length < 10) { setError(message, "Write at least 10 characters."); bad ??= message; }
+      if (bad) return bad.focus();
+
+      busy(true);
+      try {
+        const res = await fetch(form.action, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(Object.fromEntries(new FormData(form))),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) {
+          for (const [name, text] of Object.entries(data.fields || {})) if (form.elements[name]?.id) setError(form.elements[name], text);
+          throw new Error(data.error || "The message could not be sent.");
+        }
+        $("fb-ref").textContent = data.ref ? `Reference ${data.ref}.` : "";
+        card.classList.add("sent");
+        $("feedback-sent").focus();
+      } catch (err) {
+        status.textContent = `${err.message} Please try again in a minute.`;
+        status.className = "status error";
+      } finally {
+        busy(false);
+      }
+    });
+
+    $("fb-again").addEventListener("click", (e) => {
+      e.preventDefault();
+      form.reset();
+      onType();
+      $("fb-count").textContent = "0 / 5000";
+      card.classList.remove("sent");
+      started();
+      if (location.hash === "#feedback-sent" || location.hash === "#feedback-error") history.replaceState(null, "", "#feedback");
+      $("fb-name").focus();
+    });
+  })();
 </script>
 
 </body>
