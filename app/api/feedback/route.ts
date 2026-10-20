@@ -1,15 +1,14 @@
 // POST /api/feedback: the website's feedback form. Each message is checked here, then handed to the
-// Google Apps Script in google-apps-script/Code.gs, which saves it as a row in a Google Sheet and emails
-// it to both developers. Takes JSON from the page, or a plain form post when JavaScript is off
-// (answered with a redirect).
+// Google Apps Script in google-apps-script/Code.gs, which saves it as a row in a Google Sheet.
+// Takes JSON from the page, or a plain form post when JavaScript is off (answered with a redirect).
 //
 // Environment (Vercel → Settings → Environment Variables):
 //   FEEDBACK_SCRIPT_URL     the script's web app URL, https://script.google.com/macros/s/…/exec
 //   FEEDBACK_SCRIPT_TOKEN   the key that the script's setup printed
-//   FEEDBACK_DRY_RUN=1      optional, builds the email and logs it instead of sending (for previews)
+//   FEEDBACK_DRY_RUN=1      optional, logs the message instead of saving it (for previews)
 
 import { randomBytes } from "node:crypto";
-import { AREAS, SETUPS, TYPES, buildEmail, type Entry } from "@/lib/feedback-email";
+import { AREAS, SETUPS, TYPES } from "@/lib/feedback";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -118,11 +117,20 @@ export async function POST(req: Request) {
   const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || req.headers.get("x-real-ip") || "unknown";
   if (overLimit(ip)) return reply(429, { ok: false, error: "Too many messages in a short time. Please wait a few minutes." }, "feedback-error");
 
-  const entry: Entry = { ...fields, date: new Date(), ref: newRef() };
-  const { subject, html, text } = buildEmail(entry);
+  const entry = {
+    ref: newRef(),
+    date: new Date().toISOString(),
+    typeLabel: TYPES[fields.type],
+    areaLabel: AREAS[fields.area],
+    setupLabel: fields.setup ? SETUPS[fields.setup] : "",
+    name: fields.name,
+    email: fields.email,
+    subject: fields.subject,
+    message: fields.message,
+  };
 
   if (process.env.FEEDBACK_DRY_RUN === "1") {
-    console.log("Feedback (dry run, not sent)", { subject, text });
+    console.log("Feedback (dry run, not saved)", entry);
     return reply(200, { ok: true, ref: entry.ref }, "feedback-sent");
   }
 
@@ -138,31 +146,13 @@ export async function POST(req: Request) {
     return reply(503, { ok: false, error: "The feedback form is not set up yet." }, "feedback-error");
   }
 
-  const payload = {
-    token,
-    entry: {
-      ref: entry.ref,
-      date: entry.date.toISOString(),
-      typeLabel: TYPES[entry.type].label,
-      areaLabel: AREAS[entry.area],
-      setupLabel: entry.setup ? SETUPS[entry.setup] : "",
-      name: entry.name,
-      email: entry.email,
-      subject: entry.subject,
-      message: entry.message,
-    },
-    subject,
-    html,
-    text,
-  };
-
   // Google answers a web app POST with a redirect to the result, which fetch follows
-  let result: { ok?: boolean; emailed?: boolean; error?: string } = {};
+  let result: { ok?: boolean; error?: string } = {};
   try {
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ token, entry }),
       redirect: "follow",
       signal: AbortSignal.timeout(25_000),
     });
@@ -182,8 +172,6 @@ export async function POST(req: Request) {
     console.error("Feedback: the Google script refused the message:", result.error);
     return reply(502, { ok: false, error: "The message could not be sent." }, "feedback-error");
   }
-  // Saved in the Sheet but not emailed (for instance Gmail's daily limit): still delivered, so the visitor is told it went through
-  if (!result.emailed) console.warn(`Feedback ${entry.ref}: saved in the Sheet, but the email failed:`, result.error);
 
   return reply(200, { ok: true, ref: entry.ref }, "feedback-sent");
 }

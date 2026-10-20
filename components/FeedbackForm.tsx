@@ -1,6 +1,6 @@
 "use client";
 
-// The feedback form: checked here first, then sent to /api/feedback, which emails both developers.
+// The feedback form: checked here first, then sent to /api/feedback, which saves it for both developers.
 // Without JavaScript it still posts, and the server redirects back to #feedback-sent or #feedback-error.
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
@@ -238,7 +238,7 @@ export function FeedbackForm() {
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <p className="text-[13px] text-muted">Sent by email to Satria and Devin.</p>
+              <p className="text-[13px] text-muted">Goes straight to Satria and Devin.</p>
               <button type="submit" disabled={state === "sending"} className={`${button.base} ${button.md} ${button.primary} w-full cursor-pointer disabled:cursor-progress disabled:opacity-70 sm:w-auto`}>
                 {state === "sending" && <span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-current border-r-transparent" />}
                 {state === "sending" ? "Sending…" : "Send to the developers"}
@@ -282,8 +282,8 @@ function Done({ ref, reference, onAgain }: { ref?: React.Ref<HTMLDivElement>; re
       >
         <Check className="size-8" strokeWidth={2.4} />
       </motion.div>
-      <h3 className="text-xl font-semibold">Thank you, it is on its way</h3>
-      <p className="mx-auto mt-2.5 max-w-[42ch] text-muted">Your message is in both our inboxes.{reference && ` Reference ${reference}.`}</p>
+      <h3 className="text-xl font-semibold">Thank you, we’ve got it</h3>
+      <p className="mx-auto mt-2.5 max-w-[42ch] text-muted">Your message is saved, and we read every one.{reference && ` Reference ${reference}.`}</p>
       <a href="#feedback" onClick={onAgain} className={`${button.base} ${button.md} ${button.secondary} mt-6`}>
         Send another
       </a>
