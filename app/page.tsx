@@ -105,7 +105,7 @@ export default function Home() {
                 <div aria-hidden="true" className="absolute -right-16 -bottom-16 size-64 rounded-full bg-white/10" />
                 <div aria-hidden="true" className="absolute -right-4 -bottom-24 size-48 rounded-full bg-white/10" />
                 <h3 className="relative text-2xl font-semibold tracking-tight">Offline, on your PC</h3>
-                <p className="relative mt-3 max-w-[38ch] opacity-90">
+                <p className="relative mt-3 max-w-[38ch]">
                   A Windows app, or one HTML file in a browser. No account, no server, and your data stays with you.
                 </p>
               </Reveal>

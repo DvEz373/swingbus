@@ -130,6 +130,7 @@ export function PlotterDemo() {
   const [cursors, setCursors] = useState<Record<CursorKey, number>>({ a: 0.42, b: 0.7 });
   const [width, setWidth] = useState(760);
   const box = useRef<HTMLDivElement>(null);
+  const zoomAnim = useRef<{ stop: () => void } | null>(null);
   const trace = TRACES[signal];
 
   useEffect(() => {
@@ -139,8 +140,11 @@ export function PlotterDemo() {
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+  useEffect(() => () => zoomAnim.current?.stop(), []);
 
   const zoomTo = (target: Domain) => {
+    // A second click mid-zoom takes over from where the view is now
+    zoomAnim.current?.stop();
     setZoomed(target === FAULT);
     const from = domain;
     const keepInside = (d: Domain) =>
@@ -154,7 +158,7 @@ export function PlotterDemo() {
       keepInside(target);
       return;
     }
-    animate(0, 1, {
+    zoomAnim.current = animate(0, 1, {
       duration: 0.7,
       ease: [0.16, 1, 0.3, 1],
       onUpdate: (k) => setDomain([from[0] + (target[0] - from[0]) * k, from[1] + (target[1] - from[1]) * k]),
@@ -300,7 +304,7 @@ export function PlotterDemo() {
         </div>
 
         {/* The Inspector: every signal at both cursors and the difference */}
-        <aside aria-label="Inspector" className="border-t border-line bg-surface-2/60 p-4 lg:border-t-0 lg:border-l">
+        <section aria-label="Inspector" className="border-t border-line bg-surface-2/60 p-4 lg:border-t-0 lg:border-l">
           <div className="flex items-baseline justify-between">
             <h3 className="text-sm font-semibold">Inspector</h3>
             <span className="text-xs text-muted">cursors A and B</span>
@@ -339,7 +343,7 @@ export function PlotterDemo() {
             })}
           </div>
           <p className="mt-3 text-xs text-muted">Values in pu. The traces are made up for this page; the app reads your own files.</p>
-        </aside>
+        </section>
       </div>
     </div>
   );

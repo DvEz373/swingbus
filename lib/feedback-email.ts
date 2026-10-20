@@ -2,10 +2,10 @@
 // The HTML is tables and inline styles only, the way mail clients need it, and stays light in every client.
 
 export const TYPES: Record<string, { label: string; color: string; soft: string }> = {
-  feedback: { label: "Feedback", color: "#2563eb", soft: "#e8efff" },
-  bug: { label: "Bug report", color: "#dc2626", soft: "#fdecec" },
+  feedback: { label: "Feedback", color: "#2563eb", soft: "#eef3ff" },
+  bug: { label: "Bug report", color: "#c81e1e", soft: "#fdecec" },
   feature: { label: "Feature request", color: "#7c3aed", soft: "#f1eafe" },
-  question: { label: "Question", color: "#b45309", soft: "#fdf2e2" },
+  question: { label: "Question", color: "#a1480a", soft: "#fdf2e2" },
 };
 
 export const AREAS: Record<string, string> = {

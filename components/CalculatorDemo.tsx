@@ -14,6 +14,7 @@ function Slider({ label, unit, value, min, max, step, onChange, hint }: {
   const id = useId();
   // What is being typed stays as typed; only a number in range reaches the calculation
   const [draft, setDraft] = useState<string | null>(null);
+  const outOfRange = draft !== null && (draft === "" || !(Number(draft) >= min && Number(draft) <= max));
   return (
     <div>
       <div className="flex items-center justify-between gap-3">
@@ -33,12 +34,20 @@ function Slider({ label, unit, value, min, max, step, onChange, hint }: {
               if (e.target.value !== "" && n >= min && n <= max) onChange(n);
             }}
             onBlur={() => setDraft(null)}
+            aria-invalid={outOfRange || undefined}
+            aria-describedby={outOfRange ? `${id}-range` : undefined}
           />
           <span className="w-8 text-xs text-muted">{unit}</span>
         </span>
       </div>
       <input id={id} type="range" className="mt-2 w-full" min={min} max={max} step={step} value={value} onChange={(e) => { setDraft(null); onChange(Number(e.target.value)); }} />
-      {hint && <p className="text-xs text-muted">{hint}</p>}
+      {outOfRange ? (
+        <p id={`${id}-range`} className="text-xs text-danger">
+          Use a value from {min} to {max}{unit ? ` ${unit}` : ""}.
+        </p>
+      ) : (
+        hint && <p className="text-xs text-muted">{hint}</p>
+      )}
     </div>
   );
 }
