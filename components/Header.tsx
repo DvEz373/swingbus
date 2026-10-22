@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion, useScroll, useSpring } from "motion/react";
 import { useEffect, useState } from "react";
+import { DOWNLOAD } from "@/lib/release";
 import { Close, Mark, Menu } from "./icons";
 import { ThemeToggle } from "./ThemeToggle";
 import { button } from "./ui";
@@ -84,6 +85,11 @@ export function Header() {
           <span className="hidden sm:block">
             <a href="#feedback" className={`${button.base} ${button.sm} ${button.secondary}`}>
               Send feedback
+            </a>
+          </span>
+          <span className="hidden sm:block">
+            <a href={DOWNLOAD.installer} className={`${button.base} ${button.sm} ${button.primary}`}>
+              Download
             </a>
           </span>
           <button

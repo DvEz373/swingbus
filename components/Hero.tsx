@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { ArrowDown, PlayIcon } from "./icons";
+import { DOWNLOAD, VERSION } from "@/lib/release";
+import { DownloadIcon, PlayIcon } from "./icons";
 import { button } from "./ui";
 
 const FACTS = ["Grid Plotter and Grid Calculator", "Runs offline", "No account"];
@@ -44,13 +45,24 @@ export function Hero() {
             PSCAD results next to field data, and the grid behind every test. Offline, on your PC, with the files you already have.
           </p>
           <div style={delay(0.18)} className="enter mt-8 flex flex-wrap gap-3">
-            <a href="#tour" className={`${button.base} ${button.md} ${button.primary}`}>
+            <a href={DOWNLOAD.installer} className={`${button.base} ${button.md} ${button.primary}`}>
+              <DownloadIcon className="size-4" /> Download for Windows
+            </a>
+            <a href="#tour" className={`${button.base} ${button.md} ${button.secondary}`}>
               <PlayIcon className="size-4" /> Watch the tour
             </a>
-            <a href="#plotter" className={`${button.base} ${button.md} ${button.secondary}`}>
-              Try it on this page <ArrowDown className="size-4" />
-            </a>
           </div>
+          <p style={delay(0.21)} className="enter mt-3 text-sm text-muted">
+            Beta {VERSION}, Windows 10 and 11. Or the{" "}
+            <a href={DOWNLOAD.portable} className="font-medium text-fg underline decoration-line underline-offset-4 hover:decoration-accent">
+              portable version
+            </a>
+            , which runs without installing; both are on the{" "}
+            <a href={DOWNLOAD.release} className="font-medium text-fg underline decoration-line underline-offset-4 hover:decoration-accent">
+              release page
+            </a>
+            .
+          </p>
           <ul style={delay(0.24)} aria-label="At a glance" className="enter mt-8 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted">
             {FACTS.map((f) => (
               <li key={f} className="inline-flex items-center gap-2">
