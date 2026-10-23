@@ -46,18 +46,18 @@ export function Hero() {
           </p>
           <div style={delay(0.18)} className="enter mt-8 flex flex-wrap gap-3">
             <a href={DOWNLOAD.installer} className={`${button.base} ${button.md} ${button.primary}`}>
-              <DownloadIcon className="size-4" /> Download for Windows
+              <DownloadIcon className="size-4" /> Download installer
+            </a>
+            <a href={DOWNLOAD.portable} className={`${button.base} ${button.md} ${button.secondary}`}>
+              <DownloadIcon className="size-4" /> Download portable
             </a>
             <a href="#tour" className={`${button.base} ${button.md} ${button.secondary}`}>
               <PlayIcon className="size-4" /> Watch the tour
             </a>
           </div>
           <p style={delay(0.21)} className="enter mt-3 text-sm text-muted">
-            Beta {VERSION}, Windows 10 and 11. Or the{" "}
-            <a href={DOWNLOAD.portable} className="font-medium text-fg underline decoration-line underline-offset-4 hover:decoration-accent">
-              portable version
-            </a>
-            , which runs without installing; both are on the{" "}
+            Beta {VERSION} for Windows 10 and 11. The installer adds Swingbus to the Start menu; the portable version is one file that runs without
+            installing. Both are on the{" "}
             <a href={DOWNLOAD.release} className="font-medium text-fg underline decoration-line underline-offset-4 hover:decoration-accent">
               release page
             </a>
