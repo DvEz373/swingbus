@@ -14,7 +14,7 @@ On the page, besides the overview and the pictures:
 
 - **A working Plotter**: one made-up LVRT test, simulation over measurement, with cursors A and B to drag (or move with the arrow keys), a zoom to the fault, and the error between the traces
 - **A working Calculator**: SCR, X/R and the dip you want, giving the fault level, Zs and Zf, with the voltage drawn along the circuit
-- **Inside the app**: the app's screens in tabs, each one full size on a click
+- **Inside the app**: six screens of the app in tabs, each one full size on a click
 - A light/dark switch (it follows the system until you choose), and the feedback form
 
 ```sh
@@ -34,7 +34,8 @@ npm run build      # what Vercel runs
 | `app/api/feedback/route.ts` | takes the feedback form and hands it to the Google script |
 | `google-apps-script/Code.gs` | the Google Apps Script: saves each message as a row in a Sheet |
 | `lib/feedback.ts` | the form's types and parts of the app, as the Sheet shows them |
-| `public/img`, `public/video` | the pictures (light and dark) and the demo videos |
+| `public/img`, `public/video` | the pictures (light and dark, six screens) and the demo videos, both made with `docshots.js` and `demo-video.js` of the app's repository |
+| `public/icon.svg`, `icon.png`, `apple-touch-icon.png` | the app's own mark (`desktop/build/icon.svg` of the app's repository), copied as it is; `Mark` in `components/icons.tsx` is the same drawing |
 
 ## The feedback form
 
