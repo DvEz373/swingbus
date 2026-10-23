@@ -9,8 +9,9 @@ const TOOLS = [
     title: "Compare the simulation with the field",
     points: [
       "Overlay PSCAD, PSS®E, COMTRADE, MATLAB and CSV runs on the same axes",
-      "Zoom to the fault and read every signal at two cursors, with the difference",
+      "Zoom with the wheel, a drag or a box; a crosshair and two cursors read every signal, with the difference",
       "Turn the error between two signals into a signal of its own",
+      "Name each signal, and set the ticks and the labels of each axis",
       "Min, max and mean per signal, and one tab for each test case",
     ],
     href: "#plotter",
@@ -25,6 +26,7 @@ const TOOLS = [
       "The fault impedance Zf for a voltage dip or swell, with AEMO DMAT values",
       "1PG, 2PG and LL faults by symmetrical components",
       "The SCR the machine sees at its terminal, through the transformer",
+      "The voltage along the circuit, against Zf and over the fault",
     ],
     href: "#calculator",
     more: "Try the Calculator",
