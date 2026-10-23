@@ -11,9 +11,16 @@ function Icon({ children, ...props }: IconProps) {
   );
 }
 
+// The Swingbus mark, "Swing on the bus": the same drawing as APP_MARK in the app (app/src/lib/about.js of
+// Taio11k/SwingBus-App) and desktop/build/icon.svg there. The square takes the accent, the bus line and the wave
+// the accent's text colour, as the app's top bar draws it; size it with a class (size-7, size-5, …)
 export const Mark = (p: IconProps) => (
-  <svg viewBox="0 0 20 20" aria-hidden="true" {...p}>
-    <path d="M3 14 L7.5 9 L11 12 L17 5" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+  <svg viewBox="0 0 64 64" aria-hidden="true" {...p}>
+    <rect x="2" y="2" width="60" height="60" rx="15" fill="var(--accent)" />
+    <g fill="none" stroke="var(--accent-fg)" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="33" x2="52" y2="33" strokeWidth="5" strokeOpacity="0.38" />
+      <path d="M12 33 C 19 33, 19.5 15, 26 15 S 32 51, 38 51 S 45 33, 52 33" strokeWidth="6.5" />
+    </g>
   </svg>
 );
 

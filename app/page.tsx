@@ -196,7 +196,7 @@ export default function Home() {
       <footer className="border-t border-line py-8 text-sm text-muted">
         <div className={`${wrap} flex flex-wrap items-center justify-between gap-4`}>
           <span className="inline-flex items-center gap-2">
-            <span className="grid size-5 place-items-center rounded-[5px] bg-accent text-white"><Mark className="size-3.5" /></span>
+            <Mark className="size-5 shrink-0" />
             © 2026 Swingbus
           </span>
           <span>PSCAD, PSS®E and MATLAB are trademarks of their owners.</span>

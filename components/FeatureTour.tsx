@@ -29,6 +29,13 @@ const SCREENS: { key: string; tab: string; title: string; text: string; shot: Sh
     shot: { name: "app-plots-cursors", width: 1400, height: 860, alt: "Two plots with cursors A and B and the Inspector listing the value of each signal at both cursors and their difference" },
   },
   {
+    key: "settings",
+    tab: "Plot settings",
+    title: "Your names, your ticks",
+    text: "Each plotted signal can take a name of its own, and each axis its tick spacing, its label format and minor grid lines, all from one Plot settings dialog and kept in the project.",
+    shot: { name: "app-plot-customized", width: 1400, height: 820, alt: "A plot of a simulated and a measured phase voltage with the signals named Simulation and Measurement in the legend and the Inspector, a tick every 5 ms on the time axis, whole volts on the Y axis and minor grid lines" },
+  },
+  {
     key: "pscad",
     tab: "PSCAD cases",
     title: "Straight from the simulator's output",

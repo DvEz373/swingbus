@@ -58,9 +58,7 @@ export function Header() {
     >
       <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-4 px-4 sm:px-6">
         <a href="#top" className="inline-flex items-center gap-2.5 text-lg font-bold" aria-label="Swingbus, back to the top">
-          <span className="grid size-7 place-items-center rounded-[7px] bg-accent text-white shadow-[0_6px_16px_-6px_var(--accent)]">
-            <Mark className="size-[18px]" />
-          </span>
+          <Mark className="size-7 shrink-0 drop-shadow-[0_6px_12px_var(--glow)]" />
           Swingbus
         </a>
 
