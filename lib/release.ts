@@ -1,6 +1,6 @@
 // The download the page offers: the newest release of this repository. Change the version here
 // when a new one is published; the files keep these names (Swingbus-Setup-<version>.exe, Swingbus-<version>-portable.exe)
-export const VERSION = "0.9.7";
+export const VERSION = "0.9.8";
 
 const BASE = `https://github.com/dvnezkl/swingbus/releases/download/v${VERSION}`;
 
